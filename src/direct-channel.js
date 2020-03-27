@@ -21,6 +21,8 @@ class DirectChannel extends EventEmitter {
       throw new Error('This IPFS node does not support pubsub.')
     }
 
+    this._closed = false
+    this._isClosed = () => this._closed
     this._receiverID = receiverID
 
     if (!this._receiverID) {
@@ -46,7 +48,7 @@ class DirectChannel extends EventEmitter {
   }
 
   async connect () {
-    await waitForPeers(this._ipfs, [this._receiverID], this._id)
+    await waitForPeers(this._ipfs, [this._receiverID], this._id, this._isClosed)
   }
 
   /**
@@ -54,6 +56,7 @@ class DirectChannel extends EventEmitter {
    * @param  {[Any]} message Payload
    */
   async send (message) {
+    if (this._closed) return
     let m = encode(message)
     await this._ipfs.pubsub.publish(this._id, m)
   }
@@ -62,6 +65,7 @@ class DirectChannel extends EventEmitter {
    * Close the channel
    */
   close () {
+    this._closed = true
     this.removeAllListeners('message')
     this._ipfs.pubsub.unsubscribe(this._id, this._messageHandler)
   }
@@ -87,6 +91,7 @@ class DirectChannel extends EventEmitter {
   }
 
   async _openChannel () {
+    this._closed = false
     await this._setup()
     await this._ipfs.pubsub.subscribe(this._id, this._messageHandler)
   }

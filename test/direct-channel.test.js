@@ -4,7 +4,7 @@ const path = require('path')
 const rmrf = require('rimraf')
 const assert = require('assert')
 const pMapSeries = require('p-map-series')
-const { 
+const {
   createIpfsTestInstances,
   destroyIpfsTestInstances,
   connectIpfsInstances,
@@ -243,7 +243,7 @@ describe('DirectChannel', function() {
   })
 
   describe('non-participant peers can\'t send messages', function() {
-    it('doesn\'t receive unwated messages', async () => {
+    it('doesn\'t receive unwanted messages', async () => {
       const c1 = await Channel.open(ipfs1, id2)
       const c2 = await Channel.open(ipfs2, id1)
 
@@ -259,7 +259,7 @@ describe('DirectChannel', function() {
       })
 
       await ipfs3.pubsub.subscribe(c1.id, () => {})
-      await waitForPeers(ipfs1, [id3], c1.id)
+      await waitForPeers(ipfs1, [id3], c1.id, c1._isClosed.bind(c1))
       await ipfs3.pubsub.publish(c1.id, Buffer.from('OMG!'))
 
       return new Promise((resolve, reject) => {
